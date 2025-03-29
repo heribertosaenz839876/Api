@@ -7,13 +7,15 @@ export const getUsers = async (req, res) =>{
     res.json(rows);
 };
 
-export const getUser = async (req, res) =>{
+export const getUser = async (req, res) => {
     const sql = connectDB();
-    const query = {text: "select *from users where user_id = $1", values: [req.params.id]};
-    const { rows }= await sql.query(query);
-   // console.log(data,rows);
-    res.json(rows);
+    const query = { text: "select * from users where user_id = $1", values: [req.params.id] };
+    const { rows } = await sql.query(query);
+    res.json(rows[0]);
 };
+
+
+
 
 export const postUser = async (req, res) =>{
     //console.log(req.body);
@@ -29,19 +31,27 @@ export const postUser = async (req, res) =>{
     //res.send("user added");
 };
 
-export const putUser = async (req, res) =>{
-    //console.log(req.body);
-    const {username, first_name, last_name, birthdate, password, email} = req.body
+export const putUser = async (req, res) => {
+    const {username, first_name, last_name, birthdate, password, email, points} = req.body;
     const sql = connectDB();
     const query = {
-        text: "update users set username=$1, first_name=$2, last_name=$3, birthdate=$4, password=$5, email=$6 where user_id =$7",
-        values: [username, first_name, last_name, birthdate, password, email,req.params.id]
-    };    
-    const { rows }= await sql.query(query);
-    //console.log(data,rows);
-    res.json(rows);
-    //res.send("user added");
+        text: `
+          UPDATE users
+          SET username=$1,
+              first_name=$2,
+              last_name=$3,
+              birthdate=$4,
+              password=$5,
+              email=$6,
+              points=$7
+          WHERE user_id=$8
+          RETURNING *;`,
+        values: [username, first_name, last_name, birthdate, password, email, points, req.params.id]
+    };
+    const { rows } = await sql.query(query);
+    res.json(rows[0]); // si quieres devolver el usuario actualizado
 };
+
 
 export const deleteUser = async (req, res) =>{
     try {
