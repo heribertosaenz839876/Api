@@ -1,4 +1,5 @@
 import { connectDB } from "../utils/sql.js";
+import{getSalt, hashPassword} from "../utils/hash.js";
 
 export const getUsers = async (req, res) =>{
     const sql = connectDB();
@@ -20,10 +21,13 @@ export const getUser = async (req, res) => {
 export const postUser = async (req, res) =>{
     //console.log(req.body);
     const {username, first_name, last_name, birthdate, password, email} = req.body
+    const salt = getSalt();
+    const hash = hashPassword(password, salt);
+    const saltedHash = salt + hash;
     const sql = connectDB();
     const query = {
         text: "INSERT INTO users (username, first_name, last_name, birthdate, password, email) VALUES ($1, $2, $3, $4, $5, $6)",
-        values: [username, first_name, last_name, birthdate, password, email]
+        values: [username, first_name, last_name, birthdate, saltedHash, email]
     };    
     const { rows }= await sql.query(query);
     //console.log(data,rows);
@@ -49,7 +53,7 @@ export const putUser = async (req, res) => {
         values: [username, first_name, last_name, birthdate, password, email, points, req.params.id]
     };
     const { rows } = await sql.query(query);
-    res.json(rows[0]); // si quieres devolver el usuario actualizado
+    res.json(rows[0]); // devolver el usuario actualizado
 };
 
 

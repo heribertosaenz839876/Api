@@ -1,4 +1,6 @@
 import { connectDB } from "../utils/sql.js";
+import{hashPassword} from "../utils/hash.js";
+
 
 export const login = async (req, res) =>{
     const sql = connectDB();
@@ -12,8 +14,12 @@ const query = {
     // Usuario no existe
     return res.json({ isLogin: false, user: {} });
   }
+
+  const salt = data.rows[0].password.substring(0,process.env.SALT);
+  const hash = hashPassword(req.body.password, salt);
+  const saltedHash = salt + hash;
   
-  if (req.body.password === data.rows[0].password) {
+  if (saltedHash === data.rows[0].password) {
     // Contraseña correcta
     return res.json({ isLogin: true, user: data.rows });
   } else {
